@@ -397,8 +397,6 @@ nimf_anthy_filter_event_romaji (NimfEngine    *engine,
   if (anthy->preedit2->len == 1 && event->key.keyval != 'n' &&
       anthy->preedit2->str[0] == event->key.keyval)
     g_string_append (anthy->preedit1, "っ");
-  else if (anthy->preedit2->len == 0 && event->key.keyval == 'n')
-    g_string_append (anthy->preedit2, "ん");
   else
     g_string_append_c (anthy->preedit2, event->key.keyval);
 
@@ -697,18 +695,9 @@ nimf_anthy_filter_event (NimfEngine    *engine,
         nimf_anthy_emit_commit (engine, target);
         return TRUE;
       case NIMF_KEY_space:
-        {
-          gint index = nimf_candidatable_get_selected_index (anthy->candidatable);
-
-          if (G_LIKELY (index >= 0))
-          {
-            gchar *text;
-
-            text = nimf_candidatable_get_selected_text (anthy->candidatable);
-            on_candidate_clicked (engine, target, text, index);
-            g_free (text);
-          }
-        }
+        if (G_LIKELY (index >= 0))
+          on_candidate_clicked (engine, target, NULL,
+            nimf_candidatable_get_selected_index (anthy->candidatable));
         return TRUE;
       case NIMF_KEY_Up:
       case NIMF_KEY_KP_Up:
@@ -812,11 +801,7 @@ nimf_anthy_filter_event (NimfEngine    *engine,
           anthy_get_segment_stat (anthy->context, anthy->current_segment, &segment_stat);
 
           if (i < MIN (anthy->current_page * 10, segment_stat.nr_candidate))
-          {
-            anthy_get_segment (anthy->context, anthy->current_segment,
-                               i, anthy->buffer, NIMF_ANTHY_BUFFER_SIZE);
-            on_candidate_clicked (engine, target, anthy->buffer, n);
-          }
+            on_candidate_clicked (engine, target, NULL, n);
         }
         return TRUE;
       case NIMF_KEY_Escape:
@@ -1175,19 +1160,19 @@ nimf_anthy_init (NimfAnthy *anthy)
     g_hash_table_insert (nimf_anthy_romaji, "myi", g_strdup ("みぃ"));
     g_hash_table_insert (nimf_anthy_romaji, "myo", g_strdup ("みょ"));
     g_hash_table_insert (nimf_anthy_romaji, "myu", g_strdup ("みゅ"));
-    g_hash_table_insert (nimf_anthy_romaji, "ん", g_strdup ("")); /* dummy */
-    g_hash_table_insert (nimf_anthy_romaji, "んa", g_strdup ("な"));
-    g_hash_table_insert (nimf_anthy_romaji, "んe", g_strdup ("ね"));
-    g_hash_table_insert (nimf_anthy_romaji, "んi", g_strdup ("に"));
-    g_hash_table_insert (nimf_anthy_romaji, "んn", g_strdup ("ん"));
-    g_hash_table_insert (nimf_anthy_romaji, "んo", g_strdup ("の"));
-    g_hash_table_insert (nimf_anthy_romaji, "んu", g_strdup ("ぬ"));
-    g_hash_table_insert (nimf_anthy_romaji, "んy", g_strdup ("")); /* dummy */
-    g_hash_table_insert (nimf_anthy_romaji, "んya", g_strdup ("にゃ"));
-    g_hash_table_insert (nimf_anthy_romaji, "んye", g_strdup ("にぇ"));
-    g_hash_table_insert (nimf_anthy_romaji, "んyi", g_strdup ("にぃ"));
-    g_hash_table_insert (nimf_anthy_romaji, "んyo", g_strdup ("にょ"));
-    g_hash_table_insert (nimf_anthy_romaji, "んyu", g_strdup ("にゅ"));
+    g_hash_table_insert (nimf_anthy_romaji, "n", g_strdup ("")); /* dummy */
+    g_hash_table_insert (nimf_anthy_romaji, "na", g_strdup ("な"));
+    g_hash_table_insert (nimf_anthy_romaji, "ne", g_strdup ("ね"));
+    g_hash_table_insert (nimf_anthy_romaji, "ni", g_strdup ("に"));
+    g_hash_table_insert (nimf_anthy_romaji, "nn", g_strdup ("ん"));
+    g_hash_table_insert (nimf_anthy_romaji, "no", g_strdup ("の"));
+    g_hash_table_insert (nimf_anthy_romaji, "nu", g_strdup ("ぬ"));
+    g_hash_table_insert (nimf_anthy_romaji, "ny", g_strdup ("")); /* dummy */
+    g_hash_table_insert (nimf_anthy_romaji, "nya", g_strdup ("にゃ"));
+    g_hash_table_insert (nimf_anthy_romaji, "nye", g_strdup ("にぇ"));
+    g_hash_table_insert (nimf_anthy_romaji, "nyi", g_strdup ("にぃ"));
+    g_hash_table_insert (nimf_anthy_romaji, "nyo", g_strdup ("にょ"));
+    g_hash_table_insert (nimf_anthy_romaji, "nyu", g_strdup ("にゅ"));
     g_hash_table_insert (nimf_anthy_romaji, "o", g_strdup ("お"));
     g_hash_table_insert (nimf_anthy_romaji, "p", g_strdup ("")); /* dummy */
     g_hash_table_insert (nimf_anthy_romaji, "pa", g_strdup ("ぱ"));
@@ -1355,6 +1340,7 @@ nimf_anthy_init (NimfAnthy *anthy)
     g_hash_table_insert (nimf_anthy_romaji, "zyu", g_strdup ("じゅ"));
     g_hash_table_insert (nimf_anthy_romaji, ",", g_strdup ("、"));
     g_hash_table_insert (nimf_anthy_romaji, ".", g_strdup ("。"));
+    g_hash_table_insert (nimf_anthy_romaji, "-", g_strdup ("ー"));
   }
 
   if (anthy_init () < 0)
